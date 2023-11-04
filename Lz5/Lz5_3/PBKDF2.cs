@@ -44,7 +44,6 @@ namespace Lz5_3
                         data = DataBase[login];
                         Console.Write("Enter password: ");
                         password = Encoding.UTF8.GetBytes(Console.ReadLine());
-                        data = DataBase[login];
                         if (Enumerable.SequenceEqual(GetHash(password, data.Salt), data.Hash))
                         {
                             Console.WriteLine("\n\n\n\nLogin successful!\n\n\n\n");
