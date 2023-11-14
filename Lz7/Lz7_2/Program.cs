@@ -6,15 +6,13 @@ namespace Lz7_2
     {
         static void Main(string[] args)
         {      
-            Console.WriteLine("Enter path to save your public key: ");
-            var path = Console.ReadLine().Replace("\"", "") + "\\key.txt";
-            Encryption.AssignNewKey(path);
+            Encryption.AssignNewKey();
             char c = ' ';
 
             while (true)
             {
 
-                Console.WriteLine("\nDo you want to encrypt (e) or decrypt (d) a message? (press x to exit): ");
+                Console.WriteLine("\nDo you want to encrypt (e) or decrypt (d) a message? (press x to exit, press s to save public key): ");
                 c = Console.ReadKey().KeyChar;
                 Console.WriteLine();
                 switch (c)
@@ -31,6 +29,12 @@ namespace Lz7_2
                         data = Convert.FromBase64String(Console.ReadLine());
                         Console.WriteLine();
                         Console.WriteLine("Decrypted message: " + Encoding.UTF8.GetString(Encryption.DecryptData(data)));
+                        break;
+
+                    case 's':
+                        Console.WriteLine("Enter path to save your public key: ");
+                        var path = Console.ReadLine().Replace("\"", "") + "\\key.txt";
+                        Encryption.SavePublic(path);
                         break;
 
                     case 'x':

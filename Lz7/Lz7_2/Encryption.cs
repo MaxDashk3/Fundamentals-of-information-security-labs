@@ -11,15 +11,31 @@ namespace Lz7_2
 {
     internal static class Encryption
     {
-        private static RSAParameters _publicKey, _privateKey;
-        public static void AssignNewKey(string path)
+        private readonly static string CspContainerName = "RsaContainer";
+        public static void AssignNewKey()
         {
-            using (var rsa = new RSACryptoServiceProvider(2048))
+            CspParameters cspParameters = new CspParameters(1)
             {
-                rsa.PersistKeyInCsp = false;
-                _publicKey = rsa.ExportParameters(false);
-                _privateKey = rsa.ExportParameters(true);
+                KeyContainerName = CspContainerName,
+                Flags = CspProviderFlags.UseMachineKeyStore, //Рівень пристрою
+                ProviderName = "Microsoft Strong Cryptographic Provider"
+            };
+            var rsa = new RSACryptoServiceProvider(cspParameters)
+            {
+                PersistKeyInCsp = true
+            };
+        }
 
+        public static void SavePublic(string path)
+        {
+            var cspParams = new CspParameters
+            {
+                KeyContainerName = CspContainerName,
+                Flags = CspProviderFlags.UseMachineKeyStore
+            };
+            using (var rsa = new RSACryptoServiceProvider(cspParams))
+            {
+                rsa.PersistKeyInCsp = true;
                 File.WriteAllText(path, rsa.ToXmlString(false));
             }
         }
@@ -38,30 +54,46 @@ namespace Lz7_2
             Console.WriteLine("Do you want to load a custom key? (y/n)");
             char c = Console.ReadKey().KeyChar;
             Console.WriteLine();
-            using (var rsa = new RSACryptoServiceProvider(2048))
+            if (c == 'y')
             {
-                if (c == 'y')
+                using (var rsa = new RSACryptoServiceProvider(2048))
                 {
                     Console.Write("Enter path to key: ");
-                    var path = Console.ReadLine().Replace("\"","");
+                    var path = Console.ReadLine().Replace("\"", "");
                     rsa.FromXmlString(File.ReadAllText(path));
+                    return EncryptData(dataToEncrypt, rsa);
+                } 
+            }
+            else
+            {
+                var cspParams = new CspParameters
+                {
+                    KeyContainerName = CspContainerName,
+                    Flags = CspProviderFlags.UseMachineKeyStore
+                };
+                using (var rsa = new RSACryptoServiceProvider(cspParams)) 
+                {
+                    rsa.PersistKeyInCsp = true;
+                    return EncryptData(dataToEncrypt, rsa);
                 }
-                else rsa.ImportParameters(_publicKey);
-
-                return EncryptData(dataToEncrypt, rsa);
             }
         }
 
         public static byte[] DecryptData(byte[] dataToDecrypt)
         {
             byte[] plainBytes;
-            using (var rsa = new RSACryptoServiceProvider())
+            var cspParams = new CspParameters
+            {
+                KeyContainerName = CspContainerName,
+                Flags = CspProviderFlags.UseMachineKeyStore
+            };
+            using (var rsa = new RSACryptoServiceProvider(cspParams))
             {
                 rsa.PersistKeyInCsp = true;
-                rsa.ImportParameters(_privateKey);
                 plainBytes = rsa.Decrypt(dataToDecrypt, true);
             }
             return plainBytes;
+
         }
     }
 }
