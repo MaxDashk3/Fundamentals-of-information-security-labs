@@ -1,5 +1,8 @@
 ﻿using Lz13_14;
+using NLog;
 using System.Security;
+
+Logger Logger = LogManager.GetCurrentClassLogger();
 
 //User Registration
 Protector.Register("Alice", "Pa$$word", new[] { "Admins" });
@@ -35,6 +38,7 @@ while (true)
         (p.IsInRole("Admins") ? "\na) AdminOnlyCommand" : "") +
         (p.IsInRole("Sales") ? "\ns) SalesOnlyCommand" : "") +
         (p.IsInRole("TeamLeads") ? "\nt) TeamLeadOnlyCommand" : "") +
+        "\nr) Throw unhandled error " +
         "\ne) Available for all command" +
         "\nx) Exit");
 
@@ -46,6 +50,7 @@ while (true)
             try { AdminsOnlyCommand(); }
             catch (Exception e)
             {
+                Logger.Error(e);
                 Console.WriteLine(e.Message);
             }
             break;
@@ -53,6 +58,7 @@ while (true)
             try { SalesOnlyCommand(); }
             catch (Exception e)
             {
+                Logger.Error(e);
                 Console.WriteLine(e.Message);
             }
             break;
@@ -63,11 +69,16 @@ while (true)
             try { TeamLeadsOnlyCommand(); }
             catch (Exception e)
             {
+                Logger.Error(e);
                 Console.WriteLine(e.Message);
             }
             break;
         case 'x':
             return;
+        case 'r':
+            var ex = new Exception("Unhandled exception!!!");
+            Logger.Fatal(ex);
+            throw ex;
         default:
             Console.WriteLine("Unrecognized command!!!");
             break;
@@ -75,6 +86,7 @@ while (true)
 }
 void AdminsOnlyCommand()
 {
+    Logger.Trace("Trying to use Admins only command...");
     if (Thread.CurrentPrincipal == null)
     {
         throw new Exception("You are not authenticated!!!");
@@ -90,6 +102,7 @@ void AdminsOnlyCommand()
 }
 void SalesOnlyCommand()
 {
+    Logger.Trace("Trying to use Sales only command...");
     if (Thread.CurrentPrincipal == null)
     {
         throw new Exception("You are not authenticated!!!");
@@ -105,6 +118,7 @@ void SalesOnlyCommand()
 }
 void TeamLeadsOnlyCommand()
 {
+    Logger.Trace("Trying to use TeamLeads only command...");
     if (Thread.CurrentPrincipal == null)
     {
         throw new Exception("You are not authenticated!!!");
@@ -120,6 +134,8 @@ void TeamLeadsOnlyCommand()
 }
 void Authentication()
 {
+    Logger.Trace("Launching authentication...");
+
     Console.Write("Enter your name: ");
     var name = Console.ReadLine();
     Console.Write("Enter password: ");
